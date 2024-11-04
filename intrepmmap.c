@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 	if (argc < 4)
 	{
 		fprintf(stderr, "Usage %s <filename> <search_str> <replace_str>\n",argv[0]);
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 
 	char *filename = argv[1];
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 	if(strlen(search_str) != strlen(replace_str))
 	{
 		perror("Only can replace strings of same length");
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 
 	return search_and_replace(filename, search_str, replace_str);
@@ -67,7 +67,7 @@ int search_and_replace(const char *filename, char *search_str, char *replace_str
 	{
 		off_t replace_pos = (position - buffer);
 		memcpy(buffer + replace_pos, replace_str, strlen(replace_str));
-		position = strstr(buffer + replace_pos + 1, search_str);
+		position = strstr(buffer + replace_pos + strlen(replace_str), search_str);
 	}
 
 	if(msync(buffer,file_size, MS_SYNC) == -1)
