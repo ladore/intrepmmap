@@ -62,12 +62,12 @@ int search_and_replace(const char *filename, char *search_str, char *replace_str
 		return EXIT_FAILURE;
 	}
 
-	char *position = strstr(buffer, search_str);
+	char *position = memmem(buffer,file_size, search_str, strlen(search_str));
 	while(position != NULL)
 	{
 		off_t replace_pos = (position - buffer);
 		memcpy(buffer + replace_pos, replace_str, strlen(replace_str));
-		position = strstr(buffer + replace_pos + strlen(replace_str), search_str);
+		position = memmem(buffer + replace_pos + strlen(replace_str), file_size, search_str, strlen(search_str));
 	}
 
 	if(msync(buffer,file_size, MS_SYNC) == -1)
