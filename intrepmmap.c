@@ -33,6 +33,10 @@ int main(int argc, char *argv[])
 int search_and_replace(const char *filename, char *search_str, char *replace_str)
 {
 	struct stat file_stat;
+	int result = EXIT_FAILURE;
+	size_t search_len = strlen(search_str);
+    size_t replace_len = replace_len;
+
 	if(stat(filename, &file_stat) == -1)
 	{
 		perror("Stat failed");
@@ -44,46 +48,46 @@ int search_and_replace(const char *filename, char *search_str, char *replace_str
 	if(fd == -1)
 	{
 		perror("Opening file failed");
-		return EXIT_FAILURE;
+		goto cleanup;
 	}
 
 	if(ftruncate(fd,file_size) == -1)
 	{
-		close(fd);
 		perror("Truncate failed");
-		return EXIT_FAILURE;
+		goto cleanup;
 	}
 
 	char *buffer= (char *)mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	if(buffer == MAP_FAILED)
 	{
 		perror("MMAP failed");
-		close(fd);
-		return EXIT_FAILURE;
+		buffer = NULL;
+		goto cleanup;
 	}
 
-	char *position = memmem(buffer,file_size, search_str, strlen(search_str));
+	char *position = memmem(buffer,file_size, search_str, search_len);
 	while(position != NULL)
 	{
 		off_t replace_pos = (position - buffer);
-		memcpy(buffer + replace_pos, replace_str, strlen(replace_str));
-		position = memmem(buffer + replace_pos + strlen(replace_str), file_size, search_str, strlen(search_str));
+		memcpy(buffer + replace_pos, replace_str, replace_len);
+		position = memmem(buffer + replace_pos + replace_len, file_size, search_str, search_len);
 	}
 
 	if(msync(buffer,file_size, MS_SYNC) == -1)
 	{
 		perror("MSYNC failed");
-		close(fd);
-		return EXIT_FAILURE;
+		goto cleanup;
 	}
+    result = EXIT_SUCCESS;
 
-	if(munmap(buffer, file_size) == -1)
-	{
-		perror("MUNMAP failed");
-		close(fd);
-		return EXIT_FAILURE;
-	}
-
-	close(fd);
-	return EXIT_SUCCESS;
+cleanup:
+    if (buffer && buffer != MAP_FAILED) {
+        if (munmap(buffer, file_size) == -1) {
+            perror("MUNMAP failed");
+        }
+    }
+    if (fd != -1) {
+        close(fd);
+    }
+    return result;
 }
