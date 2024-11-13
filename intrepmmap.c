@@ -9,11 +9,11 @@
 
 int search_and_replace(const char *filename, char *search_str, char *replace_str);
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
 	if (argc < 4)
 	{
-		fprintf(stderr, "Usage %s <filename> <search_str> <replace_str>\n",argv[0]);
+		fprintf(stderr, "Usage %s <filename> <search_str> <replace_str>\n", argv[0]);
 		return EXIT_FAILURE;
 	}
 
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	char *search_str = argv[2];
 	char *replace_str = argv[3];
 
-	if(strlen(search_str) != strlen(replace_str))
+	if (strlen(search_str) != strlen(replace_str))
 	{
 		perror("Only can replace strings of same length");
 		return EXIT_FAILURE;
@@ -37,7 +37,7 @@ int search_and_replace(const char *filename, char *search_str, char *replace_str
 	size_t search_len = strlen(search_str);
 	size_t replace_len = replace_len;
 
-	if(stat(filename, &file_stat) == -1)
+	if (stat(filename, &file_stat) == -1)
 	{
 		perror("Stat failed");
 		return EXIT_FAILURE;
@@ -45,35 +45,35 @@ int search_and_replace(const char *filename, char *search_str, char *replace_str
 	off_t file_size = file_stat.st_size;
 
 	int fd = open(filename, O_RDWR);
-	if(fd == -1)
+	if (fd == -1)
 	{
 		perror("Opening file failed");
 		goto cleanup;
 	}
 
-	if(ftruncate(fd,file_size) == -1)
+	if (ftruncate(fd, file_size) == -1)
 	{
 		perror("Truncate failed");
 		goto cleanup;
 	}
 
-	char *buffer= (char *)mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	if(buffer == MAP_FAILED)
+	char *buffer = (char *)mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (buffer == MAP_FAILED)
 	{
 		perror("MMAP failed");
 		buffer = NULL;
 		goto cleanup;
 	}
 
-	char *position = memmem(buffer,file_size, search_str, search_len);
-	while(position != NULL)
+	char *position = memmem(buffer, file_size, search_str, search_len);
+	while (position != NULL)
 	{
 		off_t replace_pos = (position - buffer);
 		memcpy(buffer + replace_pos, replace_str, replace_len);
 		position = memmem(buffer + replace_pos + replace_len, file_size, search_str, search_len);
 	}
 
-	if(msync(buffer,file_size, MS_SYNC) == -1)
+	if (msync(buffer, file_size, MS_SYNC) == -1)
 	{
 		perror("MSYNC failed");
 		goto cleanup;
@@ -81,13 +81,16 @@ int search_and_replace(const char *filename, char *search_str, char *replace_str
 	result = EXIT_SUCCESS;
 
 cleanup:
-    if (buffer && buffer != MAP_FAILED) {
-        if (munmap(buffer, file_size) == -1) {
-            perror("MUNMAP failed");
-        }
-    }
-    if (fd != -1) {
-        close(fd);
-    }
-    return result;
+	if (buffer && buffer != MAP_FAILED)
+	{
+		if (munmap(buffer, file_size) == -1)
+		{
+			perror("MUNMAP failed");
+		}
+	}
+	if (fd != -1)
+	{
+		close(fd);
+	}
+	return result;
 }
