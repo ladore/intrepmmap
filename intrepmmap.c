@@ -35,7 +35,7 @@ int search_and_replace(const char *filename, char *search_str, char *replace_str
 	struct stat file_stat;
 	int result = EXIT_FAILURE;
 	size_t search_len = strlen(search_str);
-    size_t replace_len = replace_len;
+	size_t replace_len = replace_len;
 
 	if(stat(filename, &file_stat) == -1)
 	{
@@ -78,7 +78,7 @@ int search_and_replace(const char *filename, char *search_str, char *replace_str
 		perror("MSYNC failed");
 		goto cleanup;
 	}
-    result = EXIT_SUCCESS;
+	result = EXIT_SUCCESS;
 
 cleanup:
     if (buffer && buffer != MAP_FAILED) {
