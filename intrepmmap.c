@@ -70,7 +70,7 @@ int search_and_replace(const char *filename, char *search_str, char *replace_str
 	{
 		off_t replace_pos = (position - buffer);
 		memcpy(buffer + replace_pos, replace_str, replace_len);
-		position = memmem(buffer + replace_pos + replace_len, file_size, search_str, search_len);
+		position = memmem(buffer + replace_pos + replace_len, file_size - (replace_pos + replace_len), search_str, search_len);
 	}
 
 	if (msync(buffer, file_size, MS_SYNC) == -1)
